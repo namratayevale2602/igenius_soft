@@ -13,7 +13,7 @@ const Layout = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navbar - hidden in QuestionPlayer */}
-      {!isQuestionPlayer && <Navbar />}
+      {/* {!isQuestionPlayer && <Navbar />} */}
 
       <div className="flex">
         {/* Sidebar - hidden in QuestionPlayer */}

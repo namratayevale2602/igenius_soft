@@ -100,7 +100,7 @@ const AdminDashboard = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="space-y-6"
+        className="container mx-auto px-4 py-5 max-w-7xl"
       >
         {/* Header */}
         <div className="card">
@@ -126,7 +126,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-5">
           {adminStats.map((stat, index) => (
             <motion.div
               key={stat.label}

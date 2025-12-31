@@ -58,7 +58,7 @@ export const WeekSelection = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="container mx-auto px-4 py-5 max-w-6xl">
       {/* Header */}
       <div className="mb-8">
         <button
@@ -87,52 +87,6 @@ export const WeekSelection = () => {
           </div>
         </motion.div>
       </div>
-
-      {/* Progress Summary */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
-      >
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Calendar className="w-6 h-6 text-blue-600" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-gray-800">
-                {weeks.length}
-              </div>
-              <div className="text-sm text-gray-600">Total Weeks</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-gray-800">0</div>
-              <div className="text-sm text-gray-600">Completed Weeks</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-purple-600" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-gray-800">Beginner</div>
-              <div className="text-sm text-gray-600">Current Progress</div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
 
       {/* Weeks Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

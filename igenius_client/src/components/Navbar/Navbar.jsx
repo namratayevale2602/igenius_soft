@@ -35,7 +35,7 @@ export const Navbar = ({ showInPlayer = false }) => {
           {/* Left side - Logo & Navigation */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-linear-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">AP</span>
               </div>
               <h1 className="text-xl font-bold text-gray-800 hidden md:block">
@@ -104,7 +104,7 @@ export const Navbar = ({ showInPlayer = false }) => {
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-medium">
+                <div className="w-8 h-8 bg-linear-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-medium">
                   {user?.name?.charAt(0) || "U"}
                 </div>
                 <div className="hidden md:block text-left">

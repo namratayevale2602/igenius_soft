@@ -20,6 +20,7 @@ import { LevelSelection } from "./components/LevelSelection/LevelSelection";
 import { WeekSelection } from "./components/WeekSelection/WeekSelection";
 import { QuestionSetSelection } from "./components/QuestionSetSelection/QuestionSetSelection";
 import { QuestionPlayer } from "./components/QuestionPlayer/QuestionPlayer";
+import { AnswersPage } from "./components/QuestionPlayer/AnswersPage";
 
 function App() {
   const router = createBrowserRouter(
@@ -135,6 +136,7 @@ function App() {
             path="/levels/:levelSlug/:weekNumber"
             element={<QuestionSetSelection />}
           />
+          <Route path="/answers" element={<AnswersPage />} />
           {/* Fallback redirect */}
           {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
         </Route>

@@ -27,8 +27,11 @@ import {
   Eye,
   EyeOff,
   Layers,
+  GripVertical,
+  CheckCircle,
 } from "lucide-react";
 import { levelApi } from "../../services/api";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 export const QuestionPlayer = () => {
   const { levelSlug, weekNumber } = useParams();
@@ -52,12 +55,17 @@ export const QuestionPlayer = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
-  const [showAnswers, setShowAnswers] = useState(false);
+
+  const [showSetArrangement, setShowSetArrangement] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(10);
   const [visibleOperators, setVisibleOperators] = useState([]);
   const [visibleDigits, setVisibleDigits] = useState([]);
   const [isSetTransition, setIsSetTransition] = useState(false);
   const [announcementText, setAnnouncementText] = useState("");
+  const [completedSets, setCompletedSets] = useState(new Set());
+  const [sessionCompleted, setSessionCompleted] = useState(false);
+  const [draggedSet, setDraggedSet] = useState(null);
+  const [dragOverSet, setDragOverSet] = useState(null);
 
   const speechRef = useRef(null);
   const questionTimerRef = useRef(null);
@@ -115,6 +123,7 @@ export const QuestionPlayer = () => {
           name: data.question_set.name,
           totalQuestions: data.questions.length,
           type: data.question_set.question_type.name,
+          originalOrder: allQuestionSets.length,
         });
 
         // Add set identifier to each question
@@ -123,6 +132,7 @@ export const QuestionPlayer = () => {
           setId: data.question_set.id,
           setIndex: allQuestionSets.length - 1,
           globalIndex: allQuestions.length + index,
+          questionInSetIndex: index,
         }));
 
         allQuestions.push(...questionsWithSet);
@@ -163,6 +173,7 @@ export const QuestionPlayer = () => {
           name: data.question_set.name,
           totalQuestions: data.questions.length,
           type: data.question_set.question_type.name,
+          originalOrder: 0,
         },
       ]);
 
@@ -171,6 +182,7 @@ export const QuestionPlayer = () => {
         setId: data.question_set.id,
         setIndex: 0,
         globalIndex: index,
+        questionInSetIndex: index,
       }));
 
       setQuestions(questionsWithSet);
@@ -210,22 +222,52 @@ export const QuestionPlayer = () => {
 
           // Announce set transition with voice
           if (!isMuted) {
-            const setAnnouncement = `Starting question set ${
-              newSetIndex + 1
-            } of ${questionSets.length}: ${
-              questionSets[newSetIndex]?.name
-            }. Ready for next question.`;
+            const setAnnouncement = `Starting question set ${newSetIndex + 1}`;
             speakAnnouncement(setAnnouncement);
           }
 
           // Clear transition flag after announcement
           setTimeout(() => {
             setIsSetTransition(false);
-          }, 2000);
+          }, 500);
         }
       }
     }
   }, [currentQuestion]);
+
+  // Check if all questions are completed
+  useEffect(() => {
+    if (questions.length > 0 && currentQuestionIndex === questions.length - 1) {
+      const lastQuestion = questions[questions.length - 1];
+      if (
+        lastQuestion &&
+        currentStep === (lastQuestion.display_sequence?.length || 1) - 1
+      ) {
+        const timer = setTimeout(() => {
+          setSessionCompleted(true);
+          if (!isMuted) {
+            speakAnnouncement("All questions completed. Well done!");
+          }
+          // Auto-open answers page after 3 seconds
+          setTimeout(() => {
+            navigateToAnswersPage();
+          }, 3000);
+        }, 2000);
+
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [currentQuestionIndex, currentStep, questions]);
+
+  const navigateToAnswersPage = () => {
+    const state = {
+      questions,
+      questionSets,
+      levelSlug,
+      weekNumber,
+    };
+    navigate(`/answers`, { state });
+  };
 
   // New function for announcements
   const speakAnnouncement = (text) => {
@@ -277,11 +319,12 @@ export const QuestionPlayer = () => {
     cleanupTimers();
 
     // Announce "Get ready" before starting the question
-    if (!isMuted && isAutoPlaying) {
-      const questionNum = currentQuestionIndex + 1;
-      const announcement = `Get ready. Question ${questionNum} starting in 2 seconds.`;
-      speakAnnouncement(announcement);
-    }
+    // if (!isMuted && isAutoPlaying) {
+    //   const questionNum = currentQuestionIndex + 1;
+    //   const setNum = currentQuestion.setIndex + 1;
+    // const announcement = `Question ${questionNum}`;
+    // speakAnnouncement(announcement);
+    // }
 
     // Start after 2-second announcement
     setTimeout(() => {
@@ -319,13 +362,27 @@ export const QuestionPlayer = () => {
             stepTimerRef.current = setTimeout(processNextStep, timePerStep);
           } else {
             clearInterval(questionTimerRef.current);
-            setTimeout(handleNextQuestion, 2000);
+            // Mark set as completed if this is the last question in the set
+            if (
+              currentQuestion.questionInSetIndex ===
+              getQuestionsBySetIndex(currentQuestion.setIndex).length - 1
+            ) {
+              setCompletedSets(
+                (prev) => new Set([...prev, currentQuestion.setIndex])
+              );
+            }
+            setTimeout(handleNextQuestion, 500);
           }
         }
       };
 
       stepTimerRef.current = setTimeout(processNextStep, timePerStep);
-    }, 2000);
+    }, 500);
+  };
+
+  // Get questions by set index
+  const getQuestionsBySetIndex = (setIndex) => {
+    return questions.filter((q) => q.setIndex === setIndex);
   };
 
   // Update speakItem for better pronunciation
@@ -338,9 +395,10 @@ export const QuestionPlayer = () => {
         text = item.value.toString();
       } else if (item.type === "operator") {
         text = getOperatorWord(item.value);
-      } else if (item.type === "equals") {
-        text = "equals";
       }
+      // else if (item.type === "equals") {
+      //   text = "equals";
+      // }
 
       const speech = new SpeechSynthesisUtterance(text);
       speech.rate = playbackSpeed;
@@ -361,7 +419,7 @@ export const QuestionPlayer = () => {
       case "*":
         return "into";
       case "/":
-        return "divided by";
+        return "divide by";
       default:
         return operator;
     }
@@ -416,7 +474,7 @@ export const QuestionPlayer = () => {
       if (!isMuted && isAutoPlaying) {
         const questionNumber = nextQuestionIndex + 1;
         const totalQuestions = questions.length;
-        let announcement = `Question ${questionNumber} of ${totalQuestions}`;
+        let announcement;
 
         // Check if we're moving to a new set
         const currentSet = currentQuestion.setIndex || 0;
@@ -424,9 +482,9 @@ export const QuestionPlayer = () => {
 
         if (isMultiSet && nextSet !== currentSet) {
           const nextSetName = questionSets[nextSet]?.name || "new set";
-          announcement = `Moving to ${nextSetName}. Question ${questionNumber} of ${totalQuestions}`;
+          announcement = `Moving to ${nextSetName}`;
         } else {
-          announcement = `Next question. Question ${questionNumber} of ${totalQuestions}`;
+          announcement = `Next.`;
         }
 
         speakAnnouncement(announcement);
@@ -438,12 +496,8 @@ export const QuestionPlayer = () => {
         setIsPlaying(true);
         setIsAutoPlaying(true);
         cleanupTimers();
-      }, 2000);
+      }, 200);
     } else {
-      // End of all questions - announce completion
-      if (!isMuted) {
-        speakAnnouncement("All questions completed. Well done!");
-      }
       setIsPlaying(false);
       setIsAutoPlaying(false);
       cleanupTimers();
@@ -468,6 +522,8 @@ export const QuestionPlayer = () => {
     setIsPlaying(false);
     setIsAutoPlaying(false);
     setIsSetTransition(false);
+    setCompletedSets(new Set());
+    setSessionCompleted(false);
     cleanupTimers();
   };
 
@@ -476,6 +532,291 @@ export const QuestionPlayer = () => {
   const formatTime = (seconds) => {
     const secs = Math.max(0, Math.floor(seconds));
     return `00:${secs.toString().padStart(2, "0")}`;
+  };
+
+  // Drag and drop handlers
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const items = Array.from(questionSets);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    // Update set indices
+    const updatedItems = items.map((item, index) => ({
+      ...item,
+      originalOrder: index,
+    }));
+
+    setQuestionSets(updatedItems);
+
+    // Reorder questions based on new set order
+    const reorderedQuestions = [];
+    updatedItems.forEach((set, setIndex) => {
+      const setQuestions = questions.filter((q) => q.setId === set.id);
+      const questionsWithUpdatedSet = setQuestions.map((q, qIndex) => ({
+        ...q,
+        setIndex,
+        globalIndex: reorderedQuestions.length + qIndex,
+        questionInSetIndex: qIndex,
+      }));
+      reorderedQuestions.push(...questionsWithUpdatedSet);
+    });
+
+    setQuestions(reorderedQuestions);
+
+    // If current question is affected, update currentQuestionIndex
+    if (currentQuestionIndex >= 0) {
+      const currentQuestionId = currentQuestion?.id;
+      if (currentQuestionId) {
+        const newIndex = reorderedQuestions.findIndex(
+          (q) => q.id === currentQuestionId
+        );
+        if (newIndex !== -1) {
+          setCurrentQuestionIndex(newIndex);
+        }
+      }
+    }
+  };
+
+  // Set arrangement modal
+  const renderSetArrangementModal = () => {
+    const handleDragStart = (e, index) => {
+      setDraggedSet(index);
+      e.dataTransfer.setData("text/plain", index);
+      e.dataTransfer.effectAllowed = "move";
+    };
+
+    const handleDragOver = (e, index) => {
+      e.preventDefault();
+      setDragOverSet(index);
+    };
+
+    const handleDragLeave = (e) => {
+      setDragOverSet(null);
+    };
+
+    const handleDrop = (e, targetIndex) => {
+      e.preventDefault();
+
+      if (draggedSet === null || draggedSet === targetIndex) {
+        setDragOverSet(null);
+        setDraggedSet(null);
+        return;
+      }
+
+      // Reorder sets
+      const newSets = [...questionSets];
+      const [draggedItem] = newSets.splice(draggedSet, 1);
+      newSets.splice(targetIndex, 0, draggedItem);
+
+      // Update set indices
+      const updatedSets = newSets.map((set, index) => ({
+        ...set,
+        originalOrder: index,
+      }));
+
+      setQuestionSets(updatedSets);
+
+      // Reorder questions based on new set order
+      const reorderedQuestions = [];
+      updatedSets.forEach((set, setIndex) => {
+        const setQuestions = questions.filter((q) => q.setId === set.id);
+        const questionsWithUpdatedSet = setQuestions.map((q, qIndex) => ({
+          ...q,
+          setIndex,
+          globalIndex: reorderedQuestions.length + qIndex,
+          questionInSetIndex: qIndex,
+        }));
+        reorderedQuestions.push(...questionsWithUpdatedSet);
+      });
+
+      setQuestions(reorderedQuestions);
+
+      // Update current question index if needed
+      if (currentQuestionIndex >= 0) {
+        const currentQuestionId = currentQuestion?.id;
+        if (currentQuestionId) {
+          const newIndex = reorderedQuestions.findIndex(
+            (q) => q.id === currentQuestionId
+          );
+          if (newIndex !== -1) {
+            setCurrentQuestionIndex(newIndex);
+          }
+        }
+      }
+
+      setDragOverSet(null);
+      setDraggedSet(null);
+    };
+
+    const handleDragEnd = () => {
+      setDragOverSet(null);
+      setDraggedSet(null);
+    };
+
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        onClick={() => setShowSetArrangement(false)}
+      >
+        <motion.div
+          initial={{ scale: 0.9, y: 20 }}
+          animate={{ scale: 1, y: 0 }}
+          exit={{ scale: 0.9, y: 20 }}
+          className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-800">Arrange Sets</h2>
+              <button
+                onClick={() => setShowSetArrangement(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+            </div>
+            <p className="text-gray-600 mt-2">
+              Drag and drop to reorder sets. The first set will play first.
+            </p>
+          </div>
+
+          <div className="p-6">
+            <div className="space-y-3">
+              {questionSets.map((set, index) => (
+                <div
+                  key={set.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragEnd={handleDragEnd}
+                  className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-all duration-200 ${
+                    draggedSet === index
+                      ? "opacity-50 bg-blue-50 border-blue-300 shadow-lg"
+                      : dragOverSet === index
+                      ? "bg-blue-100 border-blue-400 scale-[1.02]"
+                      : currentSetIndex === index
+                      ? "bg-blue-50 border-blue-200"
+                      : "bg-white border-gray-200 hover:border-blue-300"
+                  } ${completedSets.has(index) ? "opacity-75" : ""}`}
+                >
+                  <div className="cursor-move">
+                    <GripVertical className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold ${
+                          currentSetIndex === index
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-100 text-gray-700"
+                        }`}
+                      >
+                        {index + 1}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-800">
+                          {set.name}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {set.totalQuestions} questions • {set.type}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {currentSetIndex === index && (
+                      <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                        Current
+                      </span>
+                    )}
+                    {completedSets.has(index) && (
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setShowSetArrangement(false)}
+                className="px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors font-medium"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    );
+  };
+
+  // Render Selected Sets Bar
+  const renderSelectedSetsBar = () => {
+    if (!isMultiSet) return null;
+
+    const handleSetClick = (index) => {
+      // Find first question of this set
+      const firstQuestionIndex = questions.findIndex(
+        (q) => q.setIndex === index
+      );
+      if (firstQuestionIndex !== -1) {
+        setCurrentQuestionIndex(firstQuestionIndex);
+        setCurrentSetIndex(index);
+        setIsPlaying(false);
+        setIsAutoPlaying(false);
+        cleanupTimers();
+      }
+    };
+
+    return (
+      <div className="bg-linear-to-r from-gray-50 to-gray-100 border-b border-gray-200 px-6 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Layers className="w-5 h-5 text-gray-600" />
+            <span className="font-medium text-gray-700">Playing Sets:</span>
+            <div className="flex gap-2">
+              {questionSets.map((set, index) => (
+                <button
+                  key={set.id}
+                  onClick={() => handleSetClick(index)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-200 ${
+                    currentSetIndex === index
+                      ? "bg-blue-100 border-blue-300 text-blue-700 scale-105"
+                      : completedSets.has(index)
+                      ? "bg-green-50 border-green-200 text-green-700"
+                      : "bg-white border-gray-300 text-gray-700 hover:border-blue-300 hover:shadow-sm"
+                  }`}
+                >
+                  <span className="font-medium">Set {index + 1}:</span>
+                  <span>{set.name}</span>
+                  {currentSetIndex === index && (
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  )}
+                  {completedSets.has(index) && (
+                    <CheckCircle className="w-4 h-4" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+          <button
+            onClick={() => setShowSetArrangement(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
+          >
+            <GripVertical className="w-4 h-4" />
+            Arrange Sets
+          </button>
+        </div>
+      </div>
+    );
   };
 
   // Render Question Display
@@ -487,19 +828,23 @@ export const QuestionPlayer = () => {
 
     return (
       <div className="h-full flex flex-col">
+        {/* Selected Sets Bar */}
+        {renderSelectedSetsBar()}
+
         {/* Question Header */}
         <div className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-4 mb-2">
-                <h2 className="text-xl font-bold text-gray-800">
-                  Question {currentQuestionIndex + 1} of {questions.length}
-                </h2>
                 {isMultiSet && (
-                  <div className="flex items-center gap-2 bg-gradient-to-r from-blue-100 to-blue-50 px-4 py-1.5 rounded-full border border-blue-200">
+                  <div className="flex items-center gap-2 bg-linear-to-r from-blue-100 to-blue-50 px-4 py-1.5 rounded-full border border-blue-200">
                     <span className="text-blue-700 font-medium">
                       Set {currentSetIndex + 1}/{questionSets.length}:{" "}
                       {currentQuestionSet?.name}
+                    </span>
+                    <span className="text-blue-600">
+                      (Question {currentQuestion.questionInSetIndex + 1}/
+                      {getQuestionsBySetIndex(currentSetIndex).length})
                     </span>
                   </div>
                 )}
@@ -515,6 +860,14 @@ export const QuestionPlayer = () => {
                 <p>{currentQuestionSet?.name || "Practice Session"}</p>
                 <span className="text-gray-400">•</span>
                 <span>{currentQuestionSet?.type || "Mixed Operations"}</span>
+                {isMultiSet && (
+                  <>
+                    <span className="text-gray-400">•</span>
+                    <span>
+                      Set {currentSetIndex + 1} of {questionSets.length}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -539,17 +892,6 @@ export const QuestionPlayer = () => {
                 )}
                 {isMuted ? "Unmute" : "Mute"}
               </button>
-              <button
-                onClick={() => setShowAnswers(!showAnswers)}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                {showAnswers ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
-                )}
-                {showAnswers ? "Hide Answers" : "Show Answers"}
-              </button>
             </div>
           </div>
 
@@ -559,7 +901,7 @@ export const QuestionPlayer = () => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="mt-3 bg-gradient-to-r from-purple-100 to-blue-100 border border-purple-200 rounded-lg p-3"
+              className="mt-3 bg-linear-to-r from-purple-100 to-blue-100 border border-purple-200 rounded-lg p-3"
             >
               <div className="flex items-center gap-2">
                 <Volume className="w-4 h-4 text-purple-600" />
@@ -573,7 +915,7 @@ export const QuestionPlayer = () => {
         </div>
 
         {/* Main Display Area */}
-        <div className="flex-1 p-8">
+        <div className="flex-1">
           <div className="h-full bg-white rounded-2xl border border-gray-200 shadow-lg p-8">
             <div className="flex h-full">
               {/* Left Side - Current Item */}
@@ -631,20 +973,17 @@ export const QuestionPlayer = () => {
               <div className="flex-1 pl-8">
                 <div className="h-full flex flex-col">
                   <div className="mb-6">
-                    <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                      Traditional Format
-                    </h3>
                     <p className="text-gray-600">
                       Step {currentStep + 1} of {currentSequence.length}
                     </p>
                   </div>
 
                   <div className="flex-1">
-                    <div className="h-full flex flex-col justify-center">
+                    <div className="flex flex-col justify-center">
                       <div className="bg-gray-50 rounded-xl p-8 border-2 border-gray-300">
                         {/* Main arithmetic layout */}
                         <div className="space-y-8">
-                          {/* First number */}
+                          {/* First number - Display as is */}
                           {visibleDigits.length > 0 && (
                             <div className="flex justify-end">
                               <div className="text-right">
@@ -652,104 +991,37 @@ export const QuestionPlayer = () => {
                                   {visibleDigits[0].display ||
                                     visibleDigits[0].value}
                                 </div>
-                                <div className="text-sm text-gray-500 mt-1">
-                                  First number
-                                </div>
                               </div>
                             </div>
                           )}
 
-                          {/* Second number with operator */}
-                          {visibleDigits.length > 1 && (
-                            <div className="flex items-center">
+                          {/* Loop through remaining digits with their operators */}
+                          {visibleDigits.slice(1).map((digit, index) => (
+                            <div
+                              key={`digit-${index}`}
+                              className="flex items-center"
+                            >
                               <div className="mr-6">
-                                {visibleOperators[0] && (
+                                {visibleOperators[index] && (
                                   <div className="text-5xl font-bold text-gray-800">
                                     {getOperatorSymbol(
-                                      visibleOperators[0].value
+                                      visibleOperators[index].value
                                     )}
                                   </div>
                                 )}
                               </div>
                               <div className="flex-1 text-right">
-                                <div className="text-5xl font-bold text-gray-800 font-mono tracking-wider border-t-2 border-gray-400 pt-2">
-                                  {visibleDigits[1].display ||
-                                    visibleDigits[1].value}
-                                </div>
-                                <div className="text-sm text-gray-500 mt-1">
-                                  Second number
+                                <div className="text-5xl font-bold text-gray-800 font-mono tracking-wider pt-2">
+                                  {digit.display || digit.value}
                                 </div>
                               </div>
                             </div>
-                          )}
+                          ))}
 
-                          {/* Third number with operator */}
-                          {visibleDigits.length > 2 && (
-                            <div className="flex items-center">
-                              <div className="mr-6">
-                                {visibleOperators[1] && (
-                                  <div className="text-5xl font-bold text-gray-800">
-                                    {getOperatorSymbol(
-                                      visibleOperators[1].value
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                              <div className="flex-1 text-right">
-                                <div className="text-5xl font-bold text-gray-800 font-mono tracking-wider border-t-2 border-gray-400 pt-2">
-                                  {visibleDigits[2].display ||
-                                    visibleDigits[2].value}
-                                </div>
-                                <div className="text-sm text-gray-500 mt-1">
-                                  Third number
-                                </div>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Fourth number with operator */}
-                          {visibleDigits.length > 3 && (
-                            <div className="flex items-center">
-                              <div className="mr-6">
-                                {visibleOperators[2] && (
-                                  <div className="text-5xl font-bold text-gray-800">
-                                    {getOperatorSymbol(
-                                      visibleOperators[2].value
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                              <div className="flex-1 text-right">
-                                <div className="text-5xl font-bold text-gray-800 font-mono tracking-wider border-t-2 border-gray-400 pt-2">
-                                  {visibleDigits[3].display ||
-                                    visibleDigits[3].value}
-                                </div>
-                                <div className="text-sm text-gray-500 mt-1">
-                                  Fourth number
-                                </div>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Horizontal line */}
+                          {/* Horizontal line when we have at least 2 digits */}
                           {visibleDigits.length >= 2 && (
                             <div className="border-t-4 border-gray-800 my-4"></div>
                           )}
-
-                          {/* Answer */}
-                          {currentStep === currentSequence.length - 1 &&
-                            currentSequence[currentStep].type === "equals" && (
-                              <div className="flex justify-end">
-                                <div className="text-right">
-                                  <div className="text-5xl font-bold text-green-800 font-mono tracking-wider">
-                                    {currentQuestion.answer}
-                                  </div>
-                                  <div className="text-sm text-green-600 mt-1">
-                                    Answer
-                                  </div>
-                                </div>
-                              </div>
-                            )}
                         </div>
 
                         {visibleDigits.length === 0 && (
@@ -761,34 +1033,17 @@ export const QuestionPlayer = () => {
                             <div className="text-sm mt-2">
                               In traditional arithmetic format
                             </div>
+                            <div className="text-sm text-gray-400 mt-1">
+                              This question has{" "}
+                              {
+                                currentSequence.filter(
+                                  (item) => item.type === "digit"
+                                ).length
+                              }{" "}
+                              digits
+                            </div>
                           </div>
                         )}
-                      </div>
-
-                      {/* Summary section */}
-                      <div className="mt-8 grid grid-cols-3 gap-4">
-                        <div className="bg-blue-50 rounded-xl p-4 text-center border border-blue-200">
-                          <div className="text-sm text-blue-600">Numbers</div>
-                          <div className="text-2xl font-bold text-blue-800">
-                            {visibleDigits.length}
-                          </div>
-                        </div>
-                        <div className="bg-purple-50 rounded-xl p-4 text-center border border-purple-200">
-                          <div className="text-sm text-purple-600">
-                            Operators
-                          </div>
-                          <div className="text-2xl font-bold text-purple-800">
-                            {visibleOperators.length}
-                          </div>
-                        </div>
-                        <div className="bg-green-50 rounded-xl p-4 text-center border border-green-200">
-                          <div className="text-sm text-green-600">
-                            Time Left
-                          </div>
-                          <div className="text-xl font-bold text-green-800 font-mono">
-                            {formatTime(timeRemaining)}
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -804,9 +1059,7 @@ export const QuestionPlayer = () => {
   // Add announcement text updates
   useEffect(() => {
     if (isSetTransition && currentQuestionSet) {
-      const text = `Starting question set ${currentSetIndex + 1} of ${
-        questionSets.length
-      }: ${currentQuestionSet.name}`;
+      const text = `Starting question set ${currentSetIndex + 1}`;
       setAnnouncementText(text);
 
       // Clear announcement after 3 seconds
@@ -847,8 +1100,8 @@ export const QuestionPlayer = () => {
               onClick={handlePlay}
               className={`flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-white transition-all shadow-md ${
                 isPlaying && isAutoPlaying
-                  ? "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
-                  : "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                  ? "bg-linear-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+                  : "bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
               }`}
             >
               {isPlaying && isAutoPlaying ? (
@@ -915,28 +1168,6 @@ export const QuestionPlayer = () => {
                     {isMuted ? "Voice Off" : "Voice On"}
                   </span>
                 </button>
-
-                {/* Test Announcement Button */}
-                <button
-                  onClick={() => {
-                    if (!isMuted) {
-                      speakAnnouncement(
-                        "Testing voice announcement. Voice is working correctly."
-                      );
-                      setAnnouncementText("Testing voice announcement...");
-                      setTimeout(() => setAnnouncementText(""), 2000);
-                    }
-                  }}
-                  disabled={isMuted}
-                  className={`px-3 py-2 rounded-lg border transition-colors ${
-                    isMuted
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-blue-100 border-blue-300 text-blue-700 hover:bg-blue-200"
-                  }`}
-                  title="Test voice"
-                >
-                  <Volume className="w-4 h-4" />
-                </button>
               </div>
 
               {/* Progress Info */}
@@ -972,10 +1203,19 @@ export const QuestionPlayer = () => {
             </div>
 
             <div className="flex items-center gap-4">
+              {/* View Answers Page */}
+              <button
+                onClick={navigateToAnswersPage}
+                className="flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-purple-100 to-purple-50 text-purple-700 hover:from-purple-200 hover:to-purple-100 rounded-lg transition-all border border-purple-200 shadow-sm"
+              >
+                <List className="w-5 h-5" />
+                <span className="font-medium">View All Answers</span>
+              </button>
+
               {/* Restart */}
               <button
                 onClick={handleRestartSession}
-                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 hover:from-blue-200 hover:to-blue-100 rounded-lg transition-all border border-blue-200 shadow-sm"
+                className="flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-blue-100 to-blue-50 text-blue-700 hover:from-blue-200 hover:to-blue-100 rounded-lg transition-all border border-blue-200 shadow-sm"
               >
                 <RotateCcw className="w-5 h-5" />
                 <span className="font-medium">Restart Session</span>
@@ -984,38 +1224,11 @@ export const QuestionPlayer = () => {
               {/* Home */}
               <button
                 onClick={handleGoHome}
-                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 hover:from-gray-200 hover:to-gray-100 rounded-lg transition-all border border-gray-200 shadow-sm"
+                className="flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-gray-100 to-gray-50 text-gray-700 hover:from-gray-200 hover:to-gray-100 rounded-lg transition-all border border-gray-200 shadow-sm"
               >
                 <Home className="w-5 h-5" />
                 <span className="font-medium">Exit Player</span>
               </button>
-            </div>
-          </div>
-
-          {/* Progress Bars */}
-          <div className="px-8 py-3 bg-white border-t border-gray-200">
-            <div className="space-y-3">
-              <div className="flex justify-between items-center text-sm text-gray-600">
-                <span className="font-medium">Overall Progress</span>
-                <span>{Math.round(questionProgress)}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div
-                  className="bg-gradient-to-r from-green-500 to-emerald-500 h-2.5 rounded-full transition-all duration-300"
-                  style={{ width: `${questionProgress}%` }}
-                />
-              </div>
-
-              <div className="flex justify-between items-center text-sm text-gray-600">
-                <span className="font-medium">Step Progress</span>
-                <span>{Math.round(stepProgress)}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div
-                  className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2.5 rounded-full transition-all duration-300"
-                  style={{ width: `${stepProgress}%` }}
-                />
-              </div>
             </div>
           </div>
         </div>
@@ -1023,152 +1236,57 @@ export const QuestionPlayer = () => {
     );
   };
 
-  // Render Answers Sidebar
-  const renderAnswersSidebar = () => {
-    return (
+  // Session Completed Modal
+  const renderSessionCompletedModal = () => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
+    >
       <motion.div
-        initial={{ x: "100%" }}
-        animate={{ x: 0 }}
-        exit={{ x: "100%" }}
-        transition={{ type: "spring", damping: 30 }}
-        className="fixed inset-y-0 right-0 w-96 bg-white border-l border-gray-200 shadow-2xl z-50"
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-md"
       >
-        <div className="h-full flex flex-col">
-          {/* Header */}
-          <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-2xl font-bold text-gray-800">
-                Answers Sheet
-              </h2>
-              <button
-                onClick={() => setShowAnswers(false)}
-                className="p-2.5 hover:bg-gray-200 rounded-xl transition-colors"
-              >
-                <ChevronLeft className="w-6 h-6 text-gray-600" />
-              </button>
-            </div>
-            <p className="text-gray-600">
-              Click on any question to jump directly
-            </p>
-            <div className="mt-4 flex items-center gap-4">
-              <div className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                {questions.length} questions
-              </div>
-              {isMultiSet && (
-                <div className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
-                  {questionSets.length} sets
-                </div>
-              )}
-            </div>
+        <div className="p-8 text-center">
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-12 h-12 text-green-600" />
           </div>
-
-          {/* Answers List */}
-          <div className="flex-1 overflow-y-auto p-6">
-            <div className="space-y-5">
-              {questions.map((question, index) => {
-                const currentSet = questionSets[question.setIndex || 0];
-                return (
-                  <motion.div
-                    key={`${question.id}-${index}`}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className={`p-5 rounded-2xl cursor-pointer transition-all duration-200 ${
-                      index === currentQuestionIndex
-                        ? "bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-300 shadow-md"
-                        : "bg-gray-50 border border-gray-200 hover:border-blue-200 hover:shadow-sm"
-                    }`}
-                    onClick={() => {
-                      setCurrentQuestionIndex(index);
-                      setCurrentStep(0);
-                      setVisibleOperators([]);
-                      setVisibleDigits([]);
-                      setIsPlaying(false);
-                      setIsAutoPlaying(false);
-                      setShowAnswers(false);
-                    }}
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-4">
-                        <div
-                          className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg ${
-                            index === currentQuestionIndex
-                              ? "bg-blue-500 text-white shadow-md"
-                              : "bg-white text-gray-600 border border-gray-300"
-                          }`}
-                        >
-                          {index + 1}
-                        </div>
-                        <div>
-                          <div className="font-semibold text-gray-800 text-lg">
-                            Question {question.question_number}
-                          </div>
-                          {isMultiSet && currentSet && (
-                            <div className="text-sm text-purple-600 mt-1">
-                              Set: {currentSet.name}
-                            </div>
-                          )}
-                          <div className="text-sm text-gray-500 mt-1">
-                            {question.time_limit}s •{" "}
-                            {question.display_sequence?.length || 0} steps
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-green-600 font-bold text-3xl font-mono bg-white px-4 py-2 rounded-xl border border-green-200 shadow-sm">
-                        {question.answer}
-                      </div>
-                    </div>
-
-                    <div className="mb-3">
-                      <div className="text-xl font-mono bg-white p-4 rounded-xl border border-gray-300 text-center shadow-sm">
-                        {question.formatted_question}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between text-sm text-gray-500">
-                      <div className="flex items-center gap-4">
-                        <span className="flex items-center gap-1">
-                          <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                          {question.display_sequence?.filter(
-                            (item) => item.type === "digit"
-                          ).length || 0}{" "}
-                          digits
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                          {question.display_sequence?.filter(
-                            (item) => item.type === "operator"
-                          ).length || 0}{" "}
-                          operators
-                        </span>
-                      </div>
-                      <div className="text-gray-400">
-                        {index === currentQuestionIndex ? "Current" : ""}
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="p-5 border-t border-gray-200 bg-gray-50">
-            <div className="text-center text-gray-600">
-              <div className="font-medium mb-1">Quick Navigation</div>
-              <div className="text-sm text-gray-500">
-                Click any question number to jump
-              </div>
-            </div>
+          <h2 className="text-3xl font-bold text-gray-800 mb-3">
+            Session Completed!
+          </h2>
+          <p className="text-gray-600 mb-6">
+            You've successfully completed all {questions.length} questions from{" "}
+            {questionSets.length} sets.
+          </p>
+          <div className="space-y-4">
+            <button
+              onClick={navigateToAnswersPage}
+              className="w-full py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors font-medium shadow-md"
+            >
+              View All Answers
+            </button>
+            <button
+              onClick={() => setSessionCompleted(false)}
+              className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
+            >
+              Continue Reviewing
+            </button>
+            <button
+              onClick={handleGoHome}
+              className="w-full py-3 bg-linear-to-r from-gray-200 to-gray-300 text-gray-700 rounded-xl hover:from-gray-300 hover:to-gray-400 transition-colors font-medium"
+            >
+              Exit to Home
+            </button>
           </div>
         </div>
       </motion.div>
-    );
-  };
+    </motion.div>
+  );
 
   // Render Loading
   const renderLoading = () => (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-gray-50 to-gray-100">
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
@@ -1184,7 +1302,7 @@ export const QuestionPlayer = () => {
 
   // Render Error
   const renderError = () => (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-8">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-gray-50 to-gray-100 p-8">
       <AlertCircle className="w-20 h-20 text-red-500 mb-6" />
       <h2 className="text-3xl font-bold text-gray-700 mb-4">
         Unable to Load Questions
@@ -1211,7 +1329,7 @@ export const QuestionPlayer = () => {
   if (error) return renderError();
   if (questions.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-gray-50 to-gray-100">
         <Calculator className="w-20 h-20 text-gray-400 mb-6" />
         <h2 className="text-2xl font-bold text-gray-700 mb-3">
           No Questions Available
@@ -1244,8 +1362,15 @@ export const QuestionPlayer = () => {
         <div style={{ height: "20vh" }}>{renderControlPanel()}</div>
       </div>
 
-      {/* Answers Sidebar */}
-      <AnimatePresence>{showAnswers && renderAnswersSidebar()}</AnimatePresence>
+      {/* Set Arrangement Modal */}
+      <AnimatePresence>
+        {showSetArrangement && renderSetArrangementModal()}
+      </AnimatePresence>
+
+      {/* Session Completed Modal */}
+      <AnimatePresence>
+        {sessionCompleted && renderSessionCompletedModal()}
+      </AnimatePresence>
     </div>
   );
 };

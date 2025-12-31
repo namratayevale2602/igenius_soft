@@ -1,5 +1,6 @@
 // src/components/DashboardSidebar/DashboardSidebar.jsx
 import { Link, useLocation } from "react-router-dom";
+import { useState } from "react";
 import {
   Home,
   BarChart3,
@@ -12,10 +13,15 @@ import {
   Folder,
   Activity,
   ChevronRight,
+  ChevronDown,
+  User,
+  LogOut,
 } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 
 export const DashboardSidebar = ({ showInPlayer = false }) => {
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
   const location = useLocation();
   const { user } = useAuthStore();
 
@@ -39,48 +45,48 @@ export const DashboardSidebar = ({ showInPlayer = false }) => {
       icon: <BookOpen className="w-5 h-5" />,
       adminOnly: false,
     },
-    {
-      name: "Progress",
-      path: "/dashboard/progress",
-      icon: <Activity className="w-5 h-5" />,
-      adminOnly: false,
-    },
-    {
-      name: "Goals",
-      path: "/dashboard/goals",
-      icon: <Target className="w-5 h-5" />,
-      adminOnly: false,
-    },
-    {
-      name: "Schedule",
-      path: "/dashboard/schedule",
-      icon: <Calendar className="w-5 h-5" />,
-      adminOnly: false,
-    },
-    {
-      name: "Achievements",
-      path: "/dashboard/achievements",
-      icon: <Award className="w-5 h-5" />,
-      adminOnly: false,
-    },
-    {
-      name: "Analytics",
-      path: "/dashboard/analytics",
-      icon: <BarChart3 className="w-5 h-5" />,
-      adminOnly: isAdmin,
-    },
+    // {
+    //   name: "Progress",
+    //   path: "/dashboard/progress",
+    //   icon: <Activity className="w-5 h-5" />,
+    //   adminOnly: false,
+    // },
+    // {
+    //   name: "Goals",
+    //   path: "/dashboard/goals",
+    //   icon: <Target className="w-5 h-5" />,
+    //   adminOnly: false,
+    // },
+    // {
+    //   name: "Schedule",
+    //   path: "/dashboard/schedule",
+    //   icon: <Calendar className="w-5 h-5" />,
+    //   adminOnly: false,
+    // },
+    // {
+    //   name: "Achievements",
+    //   path: "/dashboard/achievements",
+    //   icon: <Award className="w-5 h-5" />,
+    //   adminOnly: false,
+    // },
+    // {
+    //   name: "Analytics",
+    //   path: "/dashboard/analytics",
+    //   icon: <BarChart3 className="w-5 h-5" />,
+    //   adminOnly: isAdmin,
+    // },
     {
       name: "User Management",
       path: "/admin/users",
       icon: <Users className="w-5 h-5" />,
       adminOnly: isAdmin,
     },
-    {
-      name: "Content",
-      path: "/admin/content",
-      icon: <Folder className="w-5 h-5" />,
-      adminOnly: isAdmin,
-    },
+    // {
+    //   name: "Content",
+    //   path: "/admin/content",
+    //   icon: <Folder className="w-5 h-5" />,
+    //   adminOnly: isAdmin,
+    // },
     {
       name: "Settings",
       path: "/settings",
@@ -89,13 +95,15 @@ export const DashboardSidebar = ({ showInPlayer = false }) => {
     },
   ];
 
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 min-h-screen hidden lg:block">
+    <aside className="w-64 bg-white border-r border-gray-200 min-h-screen hidden lg:block fixed z-1">
       <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg">AP</span>
-          </div>
+        <div className="items-center">
           <div>
             <h2 className="font-bold text-gray-800">Dashboard</h2>
             <p className="text-sm text-gray-500">
@@ -141,23 +149,55 @@ export const DashboardSidebar = ({ showInPlayer = false }) => {
             ))}
         </nav>
 
-        {/* Quick Stats */}
-        <div className="mt-8 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-          <h3 className="font-semibold text-gray-800 mb-3">Quick Stats</h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Today's Practice</span>
-              <span className="font-bold text-blue-600">45 min</span>
+        {/* User Menu */}
+        <div className="relative">
+          <button
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <div className="w-8 h-8 bg-linear-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-medium">
+              {user?.name?.charAt(0) || "U"}
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Weekly Goal</span>
-              <span className="font-bold text-green-600">85%</span>
+            <div className="hidden md:block text-left">
+              <div className="text-sm font-medium text-gray-800">
+                {user?.name || "User"}
+              </div>
+              <div className="text-xs text-gray-500">
+                {user?.role === "admin" ? "Administrator" : "Student"}
+              </div>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Streak</span>
-              <span className="font-bold text-purple-600">7 days</span>
+            <ChevronDown className="w-4 h-4 text-gray-500" />
+          </button>
+
+          {/* Dropdown Menu */}
+          {showUserMenu && (
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+              <Link
+                to="/profile"
+                className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100"
+                onClick={() => setShowUserMenu(false)}
+              >
+                <User className="w-4 h-4" />
+                Profile
+              </Link>
+              <Link
+                to="/settings"
+                className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100"
+                onClick={() => setShowUserMenu(false)}
+              >
+                <Settings className="w-4 h-4" />
+                Settings
+              </Link>
+              <div className="border-t border-gray-200 my-2"></div>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 w-full px-4 py-2 text-red-600 hover:bg-red-50"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </aside>

@@ -42,21 +42,13 @@ export const LevelSelection = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-12 max-w-6xl">
+    <div className="container mx-auto px-4 py-5 max-w-6xl">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-12"
       >
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-          <BookOpen className="w-8 h-8 text-blue-600" />
-        </div>
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">
-          Abacus Proctoring
-        </h1>
-        <p className="text-gray-600 text-lg">
-          Select your level to begin practice
-        </p>
+        <h1 className="text-4xl font-bold text-gray-800 mb-2">Select Level</h1>
       </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -138,41 +130,10 @@ export const LevelSelection = () => {
               </div>
             </div>
 
-            <div className="h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+            <div className="h-1 bg-linear-to-r from-blue-500 to-purple-500"></div>
           </motion.div>
         ))}
       </div>
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="text-center mt-12 p-6 bg-white rounded-xl shadow-md border border-gray-200"
-      >
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">
-          How it works?
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-gray-600">
-          <div className="flex flex-col items-center">
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-2">
-              <span className="font-bold text-blue-600">1</span>
-            </div>
-            <span>Select your level</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-2">
-              <span className="font-bold text-blue-600">2</span>
-            </div>
-            <span>Choose a week</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-2">
-              <span className="font-bold text-blue-600">3</span>
-            </div>
-            <span>Practice with questions</span>
-          </div>
-        </div>
-      </motion.div>
     </div>
   );
 };

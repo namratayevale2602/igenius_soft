@@ -25,7 +25,7 @@ const Home = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="space-y-6"
+      className="container mx-auto px-4 py-5 max-w-7xl"
     >
       {/* Welcome Section */}
       <div className="card">
@@ -51,7 +51,7 @@ const Home = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-5">
         {stats.map((stat, index) => (
           <motion.div
             key={stat.label}
@@ -76,7 +76,7 @@ const Home = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="card">
+      <div className="card mt-5">
         <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <button className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">

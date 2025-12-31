@@ -307,7 +307,7 @@ class QuestionResource extends Resource
     {
         return [
             NavigationItem::make()
-                ->label('Questions List')
+                ->label('Questions')
                 ->icon('heroicon-o-question-mark-circle')
                 ->isActiveWhen(fn (): bool => request()->routeIs(static::getRouteBaseName() . '.index'))
                 ->url(static::getUrl('index')),
@@ -318,11 +318,7 @@ class QuestionResource extends Resource
                 ->isActiveWhen(fn (): bool => request()->routeIs(static::getRouteBaseName() . '.bulk-upload'))
                 ->url(static::getUrl('bulk-upload')),
                 
-            NavigationItem::make()
-                ->label('Create Question')
-                ->icon('heroicon-o-plus-circle')
-                ->isActiveWhen(fn (): bool => request()->routeIs(static::getRouteBaseName() . '.create'))
-                ->url(static::getUrl('create')),
+            
         ];
     }
 }
