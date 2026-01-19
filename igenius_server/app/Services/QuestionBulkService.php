@@ -219,7 +219,7 @@ class QuestionBulkService
         // Validation
         $validator = Validator::make($row, [
             'level_slug' => 'required|string|exists:levels,slug',
-            'week_number' => 'required|integer|min:1|max:10',
+            'week_number' => 'required|integer|min:1',
             'week_type' => 'required|in:regular,multiplication',
             'week_title' => 'required|string',
             'question_type_name' => 'required|string|exists:question_types,name',
