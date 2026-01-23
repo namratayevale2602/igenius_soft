@@ -5,22 +5,6 @@ import { User, Calendar, Settings, LogOut } from "lucide-react";
 const Home = () => {
   const { user, logout } = useAuthStore();
 
-  const stats = [
-    { label: "Days Active", value: "15", icon: Calendar, color: "bg-blue-500" },
-    {
-      label: "Profile Complete",
-      value: "85%",
-      icon: User,
-      color: "bg-green-500",
-    },
-    {
-      label: "Settings",
-      value: "Updated",
-      icon: Settings,
-      color: "bg-purple-500",
-    },
-  ];
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -50,34 +34,8 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-5">
-        {stats.map((stat, index) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="card hover:shadow-lg transition-shadow"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">{stat.label}</p>
-                <p className="text-2xl font-bold mt-2">{stat.value}</p>
-              </div>
-              <div
-                className={`${stat.color} w-12 h-12 rounded-lg flex items-center justify-center`}
-              >
-                <stat.icon className="w-6 h-6 text-white" />
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-
       {/* Quick Actions */}
       <div className="card mt-5">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <button className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
             <div className="flex items-center">

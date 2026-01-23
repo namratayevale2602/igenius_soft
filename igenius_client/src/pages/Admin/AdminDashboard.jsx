@@ -84,13 +84,16 @@ const AdminDashboard = () => {
   const filteredUsers = users.filter(
     (user) =>
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading levels...</p>
+        </div>
       </div>
     );
   }
@@ -116,7 +119,7 @@ const AdminDashboard = () => {
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => navigate("/admin/users/create")}
-                className="btn-primary flex items-center"
+                className="bg-blue-600 text-white p-2 rounded-xl flex items-center"
               >
                 <UserPlus className="w-5 h-5 mr-2" />
                 Add User
@@ -133,7 +136,7 @@ const AdminDashboard = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="card hover:shadow-lg transition-shadow"
+              className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow"
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -156,7 +159,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Users Table */}
-        <div className="card">
+        <div className="bg-white rounded-xl shadow-md p-6 mt-10">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900">
               Users Management

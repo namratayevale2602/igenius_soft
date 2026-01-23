@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useAuthStore } from "../store/authStore";
 
-const API_BASE_URL = "http://localhost:8000/api";
+const API_BASE_URL = "https://igenius-back.demovoting.com/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -27,7 +27,7 @@ api.interceptors.request.use(
 
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // Response interceptor
@@ -52,7 +52,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

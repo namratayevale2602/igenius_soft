@@ -72,8 +72,8 @@ export const LevelSelection = () => {
                         level.order === 1
                           ? "bg-green-500"
                           : level.order === 2
-                          ? "bg-yellow-500"
-                          : "bg-red-500"
+                            ? "bg-yellow-500"
+                            : "bg-red-500"
                       }`}
                     ></div>
                     <span className="text-sm font-medium text-gray-500 uppercase tracking-wider">
@@ -117,7 +117,9 @@ export const LevelSelection = () => {
                     <Users className="w-4 h-4 text-purple-500" />
                     <span className="text-sm text-gray-600">Weeks</span>
                   </div>
-                  <div className="text-lg font-bold text-gray-800 mt-1">10</div>
+                  <div className="text-lg font-bold text-gray-800 mt-1">
+                    <p>10</p>
+                  </div>
                 </div>
               </div>
 

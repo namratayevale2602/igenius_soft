@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap");
 @import "tailwindcss";
 
 :root {
@@ -8,31 +9,20 @@
   --primary-700: #1d4ed8;
 }
 
-@theme {
-  --color-primary-50: var(--primary-50);
-  --color-primary-100: var(--primary-100);
-  --color-primary-500: var(--primary-500);
-  --color-primary-600: var(--primary-600);
-  --color-primary-700: var(--primary-700);
+h1 {
+  font-family: "DM Serif Display", serif;
+  font-weight: 400;
 }
 
-body {
-  @apply bg-gray-50 text-gray-900;
-}
-
-/* Custom components */
-.btn-primary {
-  @apply bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors;
-}
-
-.btn-secondary {
-  @apply bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-medium transition-colors;
-}
-
-.input-field {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none;
-}
-
-.card {
-  @apply bg-white rounded-xl shadow-md p-6;
+h2,
+h3,
+h4,
+span,
+p,
+input,
+label,
+button,
+th,
+td {
+  font-family: "Urbanist", sans-serif;
 }

@@ -28,10 +28,10 @@ const Login = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="card w-full max-w-md"
+        className="bg-white p-5 w-full rounded-xl shadow-2xl max-w-md"
       >
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-full mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
             <LogIn className="w-8 h-8 text-primary-600" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
@@ -55,7 +55,7 @@ const Login = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="input-field pl-10"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 placeholder="you@example.com"
                 required
               />
@@ -72,7 +72,7 @@ const Login = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input-field pl-10"
+                className="w-full text-2xl px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 placeholder="••••••••"
                 required
               />
@@ -82,7 +82,7 @@ const Login = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full btn-primary py-3 flex items-center justify-center"
+            className="w-full text-sm font-medium text-white bg-blue-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 btn-primary py-3 flex items-center justify-center"
           >
             {isLoading ? (
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -94,16 +94,6 @@ const Login = () => {
             )}
           </button>
         </form>
-
-        <p className="text-center text-gray-600 mt-6">
-          Don't have an account?{" "}
-          <Link
-            to="/register"
-            className="text-primary-600 hover:text-primary-700 font-medium"
-          >
-            Sign up
-          </Link>
-        </p>
       </motion.div>
     </div>
   );

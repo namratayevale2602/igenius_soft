@@ -88,8 +88,11 @@ const UserFormPage = () => {
 
   if (fetching) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading user details...</p>
+        </div>
       </div>
     );
   }
@@ -98,7 +101,7 @@ const UserFormPage = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="max-w-2xl mx-auto"
+      className="max-w-2xl mx-auto bg-white p-5"
     >
       {/* Header */}
       <div className="mb-8">
@@ -135,7 +138,7 @@ const UserFormPage = () => {
       </div>
 
       {/* Form Card */}
-      <div className="card">
+      <div className="bg-white rounded-xl p-6">
         <form onSubmit={handleSubmit}>
           <div className="space-y-6">
             {/* Basic Information Section */}
@@ -154,7 +157,7 @@ const UserFormPage = () => {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="input-field"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                     placeholder="John Doe"
                   />
                 </div>
@@ -169,7 +172,7 @@ const UserFormPage = () => {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="input-field"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                     placeholder="john@example.com"
                   />
                 </div>
@@ -197,7 +200,7 @@ const UserFormPage = () => {
                     value={formData.password}
                     onChange={handleChange}
                     required={!id}
-                    className="input-field"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                     placeholder="••••••••"
                   />
                   {id && (
@@ -217,7 +220,7 @@ const UserFormPage = () => {
                     value={formData.password_confirmation}
                     onChange={handleChange}
                     required={!id}
-                    className="input-field"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                     placeholder="••••••••"
                   />
                 </div>
@@ -248,7 +251,7 @@ const UserFormPage = () => {
                       htmlFor="role-user"
                       className={`block p-4 border-2 rounded-lg cursor-pointer transition-all ${
                         formData.role === "user"
-                          ? "border-primary-500 bg-primary-50"
+                          ? "border-blue-500 bg-blue-50"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
@@ -256,7 +259,7 @@ const UserFormPage = () => {
                         <div
                           className={`w-4 h-4 rounded-full border mr-3 ${
                             formData.role === "user"
-                              ? "border-primary-500 bg-primary-500"
+                              ? "border-blue-500 bg-blue-500"
                               : "border-gray-300"
                           }`}
                         >
@@ -333,7 +336,7 @@ const UserFormPage = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-3 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 flex items-center"
+                  className="px-6 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 flex items-center"
                   disabled={loading}
                 >
                   <Save className="w-4 h-4 mr-2" />

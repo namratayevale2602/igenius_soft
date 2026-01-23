@@ -120,10 +120,10 @@ export const WeekSelection = () => {
                 </div>
                 <div className="text-right">
                   <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
-                    Week
+                    <p>Week</p>
                   </div>
                   <div className="text-2xl font-bold text-blue-600">
-                    #{week.week_number}
+                    <p>#{week.week_number}</p>
                   </div>
                 </div>
               </div>

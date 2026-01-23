@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft,
   Home,
-  Printer,
   Download,
   CheckCircle,
   Calculator,
@@ -46,15 +45,11 @@ export const AnswersPage = () => {
     return questions.filter((q) => q.setIndex === setIndex);
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8 print:p-0">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 print:shadow-none print:rounded-none print:px-0">
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 ">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
               <button
@@ -70,15 +65,6 @@ export const AnswersPage = () => {
               >
                 <Home className="w-5 h-5" />
                 Home
-              </button>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handlePrint}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg transition-colors"
-              >
-                <Printer className="w-5 h-5" />
-                Print
               </button>
             </div>
           </div>
@@ -120,7 +106,7 @@ export const AnswersPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: setIndex * 0.1 }}
-                className="bg-white rounded-2xl shadow-lg overflow-hidden print:shadow-none print:rounded-none"
+                className="bg-white rounded-2xl shadow-lg overflow-hidden "
               >
                 {/* Set Header */}
                 <div
@@ -182,9 +168,6 @@ export const AnswersPage = () => {
                                 <div className="font-semibold text-gray-800">
                                   Question {question.question_number}
                                 </div>
-                                <div className="text-sm text-gray-500">
-                                  In Set: {qIndex + 1} of {setQuestions.length}
-                                </div>
                               </div>
                             </div>
                             <div className="text-2xl font-bold text-green-600 font-mono bg-green-50 px-3 py-1 rounded-lg">
@@ -194,16 +177,8 @@ export const AnswersPage = () => {
 
                           <div className="mb-4">
                             <div className="text-lg font-mono bg-gray-50 p-3 rounded-lg text-center border border-gray-200">
-                              {question.formatted_question}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center justify-between text-sm text-gray-500">
-                            <div>Time: {question.time_limit || 10}s</div>
-                            <div className="flex items-center gap-2">
-                              <span className="px-2 py-1 bg-gray-100 rounded text-gray-700">
-                                Global: {question.globalIndex + 1}
-                              </span>
+                              {question.formatted_question} {" = "}
+                              {question.answer}
                             </div>
                           </div>
                         </div>
@@ -217,7 +192,7 @@ export const AnswersPage = () => {
         </div>
 
         {/* Summary */}
-        <div className="mt-8 bg-white rounded-2xl shadow-lg p-6 print:shadow-none print:rounded-none">
+        <div className="mt-8 bg-white rounded-2xl shadow-lg p-6 ">
           <h3 className="text-xl font-bold text-gray-800 mb-4">Summary</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-blue-50 p-4 rounded-xl">
@@ -237,7 +212,7 @@ export const AnswersPage = () => {
               <div className="text-3xl font-bold text-purple-800">
                 {Math.round(
                   questions.reduce((acc, q) => acc + (q.time_limit || 10), 0) /
-                    questions.length
+                    questions.length,
                 )}
                 s
               </div>
@@ -245,28 +220,6 @@ export const AnswersPage = () => {
           </div>
         </div>
       </div>
-
-      {/* Print Styles */}
-      <style jsx global>{`
-        @media print {
-          .print\\:p-0 {
-            padding: 0 !important;
-          }
-          .print\\:shadow-none {
-            box-shadow: none !important;
-          }
-          .print\\:rounded-none {
-            border-radius: 0 !important;
-          }
-          .print\\:px-0 {
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-          }
-          button {
-            display: none !important;
-          }
-        }
-      `}</style>
     </div>
   );
 };

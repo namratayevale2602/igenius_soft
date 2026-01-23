@@ -18,7 +18,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen ">
+    <div>
       {/* Main Hero Section */}
       <main className="container mx-auto px-4 py-12 md:py-20">
         {/* Center Content */}
@@ -31,10 +31,7 @@ const Dashboard = () => {
           {/* Branding */}
           <div className="mb-8">
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-4">
-              Welcome to{" "}
-              <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-purple-600">
-                I-Genius Abacus
-              </span>
+              Welcome to I-Genius Abacus
             </h1>
             <p className="text-lg md:text-xl text-gray-700 mb-2">
               Academy India PVT. LTD

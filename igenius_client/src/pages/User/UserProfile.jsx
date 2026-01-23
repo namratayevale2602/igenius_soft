@@ -136,7 +136,7 @@ const UserProfile = () => {
       )}
 
       {/* Header */}
-      <div className="card">
+      <div className="bg-white rounded-xl shadow-md p-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
@@ -147,7 +147,7 @@ const UserProfile = () => {
           {!isEditing ? (
             <button
               onClick={() => setIsEditing(true)}
-              className="btn-primary flex items-center"
+              className="bg-blue-600 text-white p-2 rounded-xl flex items-center"
             >
               <Edit2 className="w-5 h-5 mr-2" />
               Edit Profile
@@ -156,7 +156,7 @@ const UserProfile = () => {
             <div className="flex space-x-3">
               <button
                 onClick={handleCancel}
-                className="btn-secondary flex items-center"
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
               >
                 <X className="w-5 h-5 mr-2" />
                 Cancel
@@ -164,7 +164,7 @@ const UserProfile = () => {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="btn-primary flex items-center"
+                className="bg-blue-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
               >
                 {loading ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -184,7 +184,7 @@ const UserProfile = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-5">
         {/* Left Column - Profile Overview */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="card">
+          <div className="bg-white rounded-xl shadow-md p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-6">
               Personal Information
             </h2>
@@ -204,7 +204,7 @@ const UserProfile = () => {
                       name="name"
                       value={profileData.name}
                       onChange={handleInputChange}
-                      className="input-field"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                       required
                     />
                   </div>
@@ -221,7 +221,7 @@ const UserProfile = () => {
                       name="email"
                       value={profileData.email}
                       onChange={handleInputChange}
-                      className="input-field"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                       required
                     />
                   </div>
@@ -246,7 +246,7 @@ const UserProfile = () => {
                         name="current_password"
                         value={profileData.current_password}
                         onChange={handleInputChange}
-                        className="input-field"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                         placeholder="Enter current password"
                       />
                     </div>
@@ -261,7 +261,7 @@ const UserProfile = () => {
                           name="new_password"
                           value={profileData.new_password}
                           onChange={handleInputChange}
-                          className="input-field"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                           placeholder="Enter new password"
                           minLength={6}
                         />
@@ -276,7 +276,7 @@ const UserProfile = () => {
                           name="new_password_confirmation"
                           value={profileData.new_password_confirmation}
                           onChange={handleInputChange}
-                          className="input-field"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                           placeholder="Confirm new password"
                           minLength={6}
                         />
@@ -357,7 +357,7 @@ const UserProfile = () => {
         {/* Right Column - Account Summary */}
         <div className="space-y-6">
           {/* Account Summary */}
-          <div className="card">
+          <div className="bg-white rounded-xl shadow-md p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Account Summary
             </h3>
@@ -384,7 +384,7 @@ const UserProfile = () => {
           </div>
 
           {/* Quick Stats */}
-          <div className="card">
+          <div className="bg-white rounded-xl shadow-md p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Quick Stats
             </h3>
